@@ -2,6 +2,20 @@
 
 Standalone clear-sky **physics envelope**: theoretical GHI (pvlib Ineichen) plus a deterministic `PlantModel` chain at CSI=1. This is **not a forecast** — it is an upper-bound potential given clear sky and fixed soiling/cell temperature.
 
+## Git (nested repo inside Solar Forecast)
+
+This folder is its own Git repository. From the parent `Solar Forecast` tree:
+
+```bash
+cd physics_envelope
+git init
+# add a root .gitignore (caches, venvs, .env) if it is not already there
+git add .
+git commit -m "Initial commit: standalone clear-sky physics envelope."
+```
+
+Do **not** `git add physics_envelope/` from the parent unless you intend a submodule (`.gitmodules`). Generated files under `out/` stay ignored via `out/.gitignore`.
+
 ## Setup
 
 From this directory:
