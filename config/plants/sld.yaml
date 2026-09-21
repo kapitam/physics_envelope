@@ -1,0 +1,137 @@
+# =============================================================================
+# SLD plant configuration — filled after Step 1 CSV inspection + solar-geometry
+# inversion (data/geo_estimation.py). See the `estimated:` block at the bottom
+# for which fields are inferred vs confirmed from data, and how to replace
+# them: overwrite the value here and delete (or set false) the matching
+# `estimated.<section>.<field>` entry — no code changes needed anywhere.
+# =============================================================================
+
+plant:
+  id: "SLD"
+  name: "SLD"   # real plant name unknown — no metadata provided (EXTERNAL_REQUIREMENTS.md #1a)
+
+# Geographic location
+location:
+  latitude: 7.68      # ESTIMATED — see estimated.location.latitude below
+  longitude: 100.03   # ESTIMATED
+  altitude_m: 50      # ESTIMATED — coarse Thailand-lowland guess; clear-sky impact <0.5% at this scale
+  timezone: "Asia/Bangkok"   # CONFIRMED — WMS "Time (LCT at Indochina Time)" column, UTC+7, no DST
+
+# Nameplate capacities (MW) — confirmed from data unless noted
+nameplate:
+  dc_capacity: 113.28        # CONFIRMED — "PV Theoretical Active Power(kW)" constant = 113,280 kW
+  ac_capacity: 113.28        # ESTIMATED — no distinct inverter-AC clip observed below DC nameplate;
+                             #   PV Active Power reached 110.67 MW (97.7% of DC), so ILR~=1.0 assumed
+                             #   pending a real inverter datasheet
+  inverter_clip_at: 113.28   # ESTIMATED — the PHYSICAL inverter AC clip used by PlantModel (target =
+                             #   "PV Active Power", pre-battery). Distinct from dispatch_cap below.
+  dc_capacity_effective_fitted: 135.31   # FITTED (not just estimated) — regression (least squares
+                             #   through origin) of measured PV Active Power against POA-scaled,
+                             #   temperature-/soiling-derated output on clear (CSI 0.90-1.08, low
+                             #   rolling variability), non-curtailed minutes (n=6,241). Implies
+                             #   "PV Theoretical Active Power" (113.28 MW constant) reads as an
+                             #   AC/inverter-fleet rating, not true DC watt-peak -- the array is
+                             #   DC-oversized (ILR ~= 135.31/113.28 = 1.19), consistent with a
+                             #   bifacial plant. See reports/step04.md and reports/step05.md. This
+                             #   is the value PlantModel actually uses for the DC-side conversion.
+  dispatch_cap: 60.3         # CONFIRMED — "Active Power Target Value(kW)" constant = 60,300 kW. This
+                             # is the plant's dispatch/export cap (grid commitment, BESS-coordinated)
+                             # that binds "Plant Active Power" (post-battery), NOT "PV Active Power".
+                             # Out of scope for the Phase-1 PV-array PlantModel; see reports/step01.md.
+
+# Array geometry — fitted from the POA/GHI ratio (Erbs decomposition + isotropic transposition grid search)
+array:
+  tilt_deg: 15.0        # ESTIMATED — grid search, RMSE(POA/GHI ratio)=0.069, see data/geo_estimation.py
+  azimuth_deg: 195.0    # ESTIMATED — same fit (195 = slightly WSW of due south)
+  tracking: "fixed"     # ESTIMATED (assumption) — isotropic fixed-tilt transposition already fits the
+                         # POA/GHI ratio reasonably well; not rigorously distinguished from tracking
+  single_axis:
+    axis_tilt_deg: null
+    axis_azimuth_deg: null
+    max_angle_deg: null
+    backtrack: null
+
+# Bifacial: SLD has a Rear POA sensor (confirmed) -> additive rear-irradiance term.
+bifacial:
+  is_bifacial: true          # CONFIRMED — "Rear POA" WMS sensor file exists (12 rear-facing pyranometers)
+  rear_gain_factor: 0.70      # ASSUMPTION (documented) — typical bifacial rear-response factor
+                              # (literature range ~0.65-0.85); NOT fitted from data yet. Used as
+                              # effective_poa = poa_front + rear_gain_factor * poa_rear.
+  measured_rear_poa_available: true
+
+# Module electrical / thermal parameters
+module:
+  temp_coefficient_pct_per_C: -0.35   # ASSUMPTION (documented, per build instructions) — typical c-Si value
+  stc:
+    irradiance_w_m2: 1000
+    cell_temp_c: 25
+  operating_cell_temp_c: 55   # ESTIMATED — see estimated.module.operating_cell_temp_c and estimation_notes.module
+  thermal_model: "use_pv_temp_sensor"   # CONFIRMED — "PV Module Temp" sensor exists (4 stations x 3-4 probes)
+
+units:
+  power: "MW"
+  irradiance: "W/m^2"
+  temperature: "C"
+
+data:
+  csv_paths:
+    ems: "Plant_data/SLD_Operating data_Jan-Jun 2025/SLD_EMS_Plant data (10Jan-30Jun 2025).csv"
+    wms_dir: "Plant_data/SLD_Operating data_Jan-Jun 2025/SLD_WMS (1Jan-30Jun 2025)"
+    soc_xlsx: "Plant_data/SLD_Operating data_Jan-Jun 2025/SLD_SOC and Discharge Power (1Jan-30Jun 2025).xlsx"
+  expected_date_range:
+    start: "2025-01-10"
+    end: "2025-06-30"
+  expected_resolution_min: 1   # CONFIRMED — EMS + WMS both 1-min resolution
+
+split:
+  train_start: "2025-01-10"
+  train_end: "2025-05-15"    # confirmed after per-month density check, reports/step02.md
+  test_start: "2025-05-16"
+  test_end: "2025-06-30"
+
+models: {}
+
+# -----------------------------------------------------------------------------
+# Estimation ledger — mirrors the structure above. `true` = inferred/assumed,
+# not measured; replace the value above and flip this to `false` (or delete
+# the entry) once real metadata lands. No code depends on this block existing.
+# -----------------------------------------------------------------------------
+estimated:
+  location:
+    latitude: true
+    longitude: true
+    altitude_m: true
+  nameplate:
+    ac_capacity: true
+    dc_capacity_effective_fitted: true
+  array:
+    tilt_deg: true
+    azimuth_deg: true
+    tracking: true
+  bifacial:
+    rear_gain_factor: true
+  module:
+    temp_coefficient_pct_per_C: true
+    operating_cell_temp_c: true
+
+estimation_notes:
+  location: >
+    Solar-geometry inversion (data/geo_estimation.py estimate_location): joint
+    fit of observed sunrise/transit/sunset clock times (from the 4-station
+    mean "Solar Irr" GHI signal) against pvlib sun_rise_set_transit_spa,
+    n=180 days, residual RMS 27.3 min. Longitude is well-constrained by
+    transit time (+/-6.2 deg via equation-of-time); latitude from day-length
+    is WEAK near the equator by physical construction (+/-5.5 deg) — day
+    length varies only ~1h across the whole year at this latitude band, so
+    the method has limited resolving power. Treat latitude as a rough
+    plausibility bound only; a real survey coordinate is required
+    (EXTERNAL_REQUIREMENTS.md #1a).
+  array: >
+    Grid search (tilt 0-30 step 2.5, azimuth 90-270 step 15) minimizing RMSE
+    between observed POA/GHI ratio and pvlib isotropic-transposition-modeled
+    POA/GHI, GHI decomposed to DNI/DHI via the Erbs model, n=107,083 daytime
+    points across the full Jan-Jun window (all seasons). RMSE=0.069 on the
+    ratio scale — a reasonable but not tight fit.
+  module: >
+    WMS 4-station mean PV Module Temp; minutes POA>600 W/m²; Jan–Jun 2025; n=44841;
+    median 54.6 rounded to 55. STC not fitted (module.stc.cell_temp_c remains 25 IEC STC).

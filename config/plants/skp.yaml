@@ -1,0 +1,76 @@
+# =============================================================================
+# SKP plant configuration — Sky Power (EGAT KCB1), Kanchanaburi. Metadata from
+# Historic Forecast Evaluation Data (PVsyst VC7 + CAD SO-KCB1). No Plant_data
+# CSVs in repo. PlantModel (physical/) is incomplete until
+# module.temp_coefficient_pct_per_C is known (gamma); other fields filled from
+# historic docs where cited below.
+# =============================================================================
+
+plant:
+  id: "SKP"
+  name: "Sky Power Co., Ltd."
+
+location:
+  latitude: 14.3960     # CONFIRMED — PVsyst VC7; CAD SO-KCB1 14.395972/99.722028 ~tens of m
+  longitude: 99.7219    # CONFIRMED — PVsyst
+  altitude_m: 29        # CONFIRMED — PVsyst
+  timezone: "Asia/Bangkok"   # CONFIRMED
+
+nameplate:
+  dc_capacity: 63.7975       # CONFIRMED — CAD MWp
+  ac_capacity: 48.64         # CONFIRMED — CAD AC@40C
+  inverter_clip_at: 48.64    # CONFIRMED — CAD AC@40C
+  dispatch_cap: 48             # CONFIRMED — PPA (MW)
+
+array:
+  tilt_deg: 11              # CONFIRMED — PVsyst
+  azimuth_deg: 180          # CONFIRMED — PVsyst 0=south mapped to pvlib 0=N convention
+  tracking: "fixed"         # CONFIRMED — PVsyst
+  single_axis: {axis_tilt_deg: null, axis_azimuth_deg: null, max_angle_deg: null, backtrack: null}
+
+bifacial:
+  is_bifacial: true          # CONFIRMED — PVsyst / CAD
+  rear_gain_factor: null     # unknown — not in repo metadata
+  measured_rear_poa_available: false
+
+module:
+  temp_coefficient_pct_per_C: null   # unknown — required for PlantModel; do not invent
+  stc: {irradiance_w_m2: 1000, cell_temp_c: 25}
+  operating_cell_temp_c: 50   # ESTIMATED — PVsyst VC7 p.4 "At operating cond. (50°C)"
+  thermal_model: null
+
+units:
+  power: "MW"
+  irradiance: "W/m^2"
+  temperature: "C"
+
+data:
+  csv_paths: null            # no Plant_data CSVs in repo; Historic Forecast Evaluation Data/
+                               # Historical Solar Power.xlsx sheet SKP exists externally — not copied
+  expected_date_range: null
+  expected_resolution_min: null
+
+# No archive train/test split — no Solcast CSV series in repo for SKP
+split: null
+
+models: {}
+
+estimated:
+  location: {latitude: false, longitude: false, altitude_m: false}
+  nameplate: {dc_capacity: false, ac_capacity: false, inverter_clip_at: false, dispatch_cap: false}
+  array: {tilt_deg: false, azimuth_deg: false, tracking: false}
+  module: {operating_cell_temp_c: true}
+
+estimation_notes:
+  sources: >
+    PVsyst VC7 report and CAD SO-KCB1 (Historic Forecast Evaluation Data/).
+    No Plant_data CSVs in repo; power/irradiance archive not loaded here.
+  azimuth: >
+    PVsyst uses 0 = south; stored azimuth_deg 180 matches pvlib fixed-tilt convention
+    (180 = south).
+  plant_model: >
+    PlantModel remains incomplete until module.temp_coefficient_pct_per_C (gamma) is
+    supplied from datasheets or owner — field left null intentionally.
+  module: >
+    operating_cell_temp_c 50 °C from PVsyst VC7 report p.4 "At operating cond. (50°C)".
+    module.stc.cell_temp_c remains 25 IEC STC; not fitted from data.
