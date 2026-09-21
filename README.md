@@ -24,20 +24,22 @@ From this directory:
 pip install -r requirements.txt
 ```
 
+## Plant configuration
+
+The public repository includes only `config/plants/example.yaml` — a **fictional** fixture for demos and tests. Real plant YAML files are **collaborator-only**: they are gitignored and supplied through a private channel. Collaborators place their files at `config/plants/<id>.yaml` (same schema as the example).
+
 ## Run envelope CLI
 
 ```bash
 cd physics_envelope
-python envelope.py --plant skp --start 2025-04-15 --end 2025-04-16 --out out/skp.csv --plot out/skp.png
+python envelope.py --plant example --start 2025-04-15 --end 2025-04-16 --out out/example.csv --plot out/example.png
 ```
 
 Equivalent module form (with `PYTHONPATH=.` or from this directory):
 
 ```bash
-PYTHONPATH=. python -m envelope --plant skp --start 2025-04-15 --end 2025-04-16 --out out/skp.csv --plot out/skp.png
+PYTHONPATH=. python -m envelope --plant example --start 2025-04-15 --end 2025-04-16 --out out/example.csv --plot out/example.png
 ```
-
-Plant configs live in `config/plants/<id>.yaml` (sld, prr, stp, skp).
 
 ### Options
 

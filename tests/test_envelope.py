@@ -9,20 +9,20 @@ from config_load import load_plant_config
 from envelope import compute_clearsky_envelope
 
 
-def _day_night_index():
+def _day_night_index(tz: str):
     return pd.date_range(
         "2025-04-15",
         "2025-04-16",
         freq="15min",
-        tz="Asia/Bangkok",
+        tz=tz,
         inclusive="left",
     )
 
 
-@pytest.mark.parametrize("plant_id", ["sld", "skp"])
+@pytest.mark.parametrize("plant_id", ["example"])
 def test_clearsky_envelope_day_night(plant_id: str):
-    timestamps = _day_night_index()
     config = load_plant_config(plant_id)
+    timestamps = _day_night_index(config["location"]["timezone"])
     df = compute_clearsky_envelope(config, timestamps, 1.0, 25.0)
 
     assert list(df.columns) == ["ghi_clear", "p_clear_mw"]

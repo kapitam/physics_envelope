@@ -114,9 +114,9 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--plant",
-        default="sld",
+        default="example",
         dest="plant_id",
-        help="Plant config id: config/plants/<id>.yaml (sld, prr, stp, skp, or any new file)",
+        help="Plant config id: config/plants/<id>.yaml (default: example; add your own yaml locally)",
     )
     parser.add_argument("--start", required=True, help="Range start (local plant tz if naive)")
     parser.add_argument("--end", required=True, help="Range end (pandas date_range semantics)")

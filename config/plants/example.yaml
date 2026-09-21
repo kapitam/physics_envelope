@@ -1,0 +1,32 @@
+# Fictional example only; not a real plant.
+
+plant:
+  id: "EXAMPLE"
+  name: "Fictional Demo Solar (not a real site)"
+
+location:
+  latitude: 35.0
+  longitude: -106.0
+  altitude_m: 10
+  timezone: "America/Denver"
+
+nameplate:
+  dc_capacity: 10.0
+  inverter_clip_at: 8.0
+
+array:
+  tilt_deg: 22.0
+  azimuth_deg: 180.0
+  tracking: "fixed"
+
+bifacial:
+  is_bifacial: false
+
+module:
+  temp_coefficient_pct_per_C: -0.38
+  stc:
+    irradiance_w_m2: 1000
+    cell_temp_c: 25
+
+units:
+  power: "MW"
